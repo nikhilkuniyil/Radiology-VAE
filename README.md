@@ -62,6 +62,18 @@ python src/generate.py \
   --use-antixk-vae
 ```
 
+To save one PNG per generated sample instead of a single grid:
+
+```bash
+python src/generate.py \
+  --checkpoint outputs/run1/best.pt \
+  --num-samples 64 \
+  --separate-images \
+  --out-dir outputs/run1/generated_samples \
+  --file-prefix sample \
+  --use-antixk-vae
+```
+
 ## Evaluate (FID + Inception Score)
 
 Uses the Ignite GAN evaluation flow (`ignite.metrics.FID` and `ignite.metrics.InceptionScore`)
