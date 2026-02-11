@@ -25,6 +25,7 @@ Your dataset should be a folder with images (nested subfolders are supported).
 ```bash
 python src/train.py \
   --data-dir /path/to/images \
+  --val-dir /path/to/val_images \
   --out-dir outputs/run1 \
   --epochs 30 \
   --image-size 128 \
@@ -38,6 +39,9 @@ Training generates report-ready artifacts in `outputs/run1/report/`:
 - `train_metrics.csv` (epoch-level loss table)
 - `loss_curves.png`
 - `final_metrics.json`
+
+If `--val-dir` is provided, training also computes validation metrics each epoch and selects
+`best.pt` using validation loss (`val_loss`) instead of training loss.
 
 ## Generate Samples
 
@@ -74,4 +78,5 @@ Evaluation writes:
 
 - The training loss is `reconstruction + beta * KL`.
 - Reconstruction uses MSE with inputs normalized to `[0, 1]`.
+- `val_acc` is a reconstruction similarity score: `100 * (1 - mean(abs(x_hat - x)))`.
 - This is a compact baseline intended for homework iteration.
