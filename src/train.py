@@ -26,7 +26,7 @@ def get_args():
     parser.add_argument("--image-size", type=int, default=128)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=30)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--beta-start", type=float, default=0.0)
     parser.add_argument("--kl-warmup-epochs", type=int, default=0)
