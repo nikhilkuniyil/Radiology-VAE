@@ -30,7 +30,10 @@ python src/train.py \
   --epochs 30 \
   --image-size 128 \
   --batch-size 32 \
-  --latent-dim 128
+  --latent-dim 128 \
+  --beta 1.0 \
+  --beta-start 0.0 \
+  --kl-warmup-epochs 10
 ```
 
 Training generates report-ready artifacts in `outputs/run1/report/`:
@@ -42,6 +45,7 @@ Training generates report-ready artifacts in `outputs/run1/report/`:
 
 If `--val-dir` is provided, training also computes validation metrics each epoch and selects
 `best.pt` using validation loss (`val_loss`) instead of training loss.
+If `--kl-warmup-epochs > 0`, beta is linearly warmed up from `--beta-start` to `--beta`.
 
 ## Generate Samples
 

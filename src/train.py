@@ -28,6 +28,8 @@ def get_args():
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--beta", type=float, default=1.0)
+    parser.add_argument("--beta-start", type=float, default=0.0)
+    parser.add_argument("--kl-warmup-epochs", type=int, default=0)
     parser.add_argument("--latent-dim", type=int, default=128)
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--seed", type=int, default=42)
@@ -38,6 +40,13 @@ def get_args():
 def set_seed(seed: int):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+
+def get_epoch_beta(epoch: int, target_beta: float, beta_start: float, warmup_epochs: int):
+    if warmup_epochs <= 0:
+        return target_beta
+    progress = min(1.0, float(epoch) / float(warmup_epochs))
+    return beta_start + progress * (target_beta - beta_start)
 
 
 def evaluate_loader(model, loader, device, beta):
@@ -161,6 +170,7 @@ def main():
             fp,
             fieldnames=[
                 "epoch",
+                "beta",
                 "loss",
                 "recon",
                 "kl",
@@ -177,12 +187,13 @@ def main():
         epoch_total = 0.0
         epoch_recon = 0.0
         epoch_kl = 0.0
+        epoch_beta = get_epoch_beta(epoch, args.beta, args.beta_start, args.kl_warmup_epochs)
 
         pbar = tqdm(loader, desc=f"Epoch {epoch}/{args.epochs}")
         for x in pbar:
             x = x.to(device, non_blocking=True)
             x_hat, mu, logvar = model(x)
-            loss, recon, kl = vae_loss(x_hat, x, mu, logvar, beta=args.beta)
+            loss, recon, kl = vae_loss(x_hat, x, mu, logvar, beta=epoch_beta)
 
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
@@ -203,10 +214,11 @@ def main():
         avg_kl = epoch_kl / n_batches
         val_metrics = {"loss": None, "recon": None, "kl": None, "recon_acc": None}
         if val_loader is not None:
-            val_metrics = evaluate_loader(model, val_loader, device, args.beta)
+            val_metrics = evaluate_loader(model, val_loader, device, epoch_beta)
 
         row = {
             "epoch": epoch,
+            "beta": epoch_beta,
             "loss": avg_total,
             "recon": avg_recon,
             "kl": avg_kl,
@@ -221,6 +233,7 @@ def main():
                 fp,
                 fieldnames=[
                     "epoch",
+                    "beta",
                     "loss",
                     "recon",
                     "kl",
@@ -233,11 +246,15 @@ def main():
             writer.writerow(row)
 
         if val_loader is None:
-            print(f"epoch={epoch} loss={avg_total:.6f} recon={avg_recon:.6f} kl={avg_kl:.6f}")
+            print(
+                f"epoch={epoch} beta={epoch_beta:.4f} "
+                f"loss={avg_total:.6f} recon={avg_recon:.6f} kl={avg_kl:.6f}"
+            )
             candidate_metric = avg_total
         else:
             print(
                 f"epoch={epoch} "
+                f"beta={epoch_beta:.4f} "
                 f"train_loss={avg_total:.6f} train_recon={avg_recon:.6f} train_kl={avg_kl:.6f} "
                 f"val_loss={val_metrics['loss']:.6f} val_recon={val_metrics['recon']:.6f} "
                 f"val_kl={val_metrics['kl']:.6f} val_acc={val_metrics['recon_acc']:.2f}%"
@@ -289,6 +306,7 @@ def main():
                 "best_metric": best_loss,
                 "best_metric_name": best_metric_name,
                 "final_epoch_loss": history[-1]["loss"] if history else None,
+                "final_epoch_beta": history[-1]["beta"] if history else None,
                 "final_epoch_val_loss": history[-1]["val_loss"] if history else None,
                 "final_epoch_val_recon_acc": history[-1]["val_recon_acc"] if history else None,
                 "epochs": args.epochs,
