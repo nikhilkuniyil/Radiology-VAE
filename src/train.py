@@ -10,7 +10,8 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 
 from data.image_dataset import ImageFolderDataset
-from models.vae import ConvVAE, vae_loss
+from models.factory import build_vae
+from models.vae import vae_loss
 
 try:
     import matplotlib.pyplot as plt
@@ -31,6 +32,7 @@ def get_args():
     parser.add_argument("--beta-start", type=float, default=0.0)
     parser.add_argument("--kl-warmup-epochs", type=int, default=0)
     parser.add_argument("--latent-dim", type=int, default=128)
+    parser.add_argument("--use-antixk-vae", action="store_true")
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--save-every", type=int, default=5)
@@ -112,8 +114,9 @@ def save_loss_curve(history, out_path: Path):
 
 def main():
     args = get_args()
-    if args.image_size % 16 != 0:
-        raise ValueError("--image-size must be divisible by 16.")
+    required_divisor = 32 if args.use_antixk_vae else 16
+    if args.image_size % required_divisor != 0:
+        raise ValueError(f"--image-size must be divisible by {required_divisor} for the selected model.")
 
     set_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -158,7 +161,12 @@ def main():
             drop_last=False,
         )
 
-    model = ConvVAE(image_channels=1, latent_dim=args.latent_dim, image_size=args.image_size).to(device)
+    model = build_vae(
+        use_antixk_vae=args.use_antixk_vae,
+        image_channels=1,
+        latent_dim=args.latent_dim,
+        image_size=args.image_size,
+    ).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     best_loss = float("inf")

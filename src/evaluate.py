@@ -3,15 +3,13 @@ import json
 from pathlib import Path
 
 import torch
-from ignite.engine import Engine
-from ignite.metrics import FID, InceptionScore
 from PIL import Image
 from torch.utils.data import DataLoader, Subset
 from torchvision import transforms
 from torchvision.utils import save_image
 
 from data.image_dataset import ImageFolderDataset
-from models.vae import ConvVAE
+from models.factory import build_vae
 
 
 def get_args():
@@ -25,6 +23,7 @@ def get_args():
     parser.add_argument("--eval-image-size", type=int, default=299)
     parser.add_argument("--latent-dim", type=int, default=None)
     parser.add_argument("--image-size", type=int, default=None)
+    parser.add_argument("--use-antixk-vae", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--metric-device", type=str, default="cpu")
     return parser.parse_args()
@@ -55,6 +54,11 @@ def resize_to_inception(batch: torch.Tensor, target_size: int, device: torch.dev
 def main():
     args = get_args()
     set_seed(args.seed)
+    try:
+        from ignite.engine import Engine
+        from ignite.metrics import FID, InceptionScore
+    except ImportError as exc:
+        raise ImportError("pytorch-ignite is required for evaluation. Run `pip install -r requirements.txt`.") from exc
 
     model_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     metric_device = torch.device(args.metric_device)
@@ -65,11 +69,17 @@ def main():
     image_size = args.image_size if args.image_size is not None else ckpt_args.get("image_size")
     if latent_dim is None or image_size is None:
         raise ValueError("Could not infer latent/image size from checkpoint. Pass --latent-dim and --image-size.")
+    use_antixk_vae = args.use_antixk_vae or bool(ckpt_args.get("use_antixk_vae", False))
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    model = ConvVAE(image_channels=1, latent_dim=int(latent_dim), image_size=int(image_size)).to(model_device)
+    model = build_vae(
+        use_antixk_vae=use_antixk_vae,
+        image_channels=1,
+        latent_dim=int(latent_dim),
+        image_size=int(image_size),
+    ).to(model_device)
     model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
 
