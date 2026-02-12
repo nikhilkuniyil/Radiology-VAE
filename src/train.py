@@ -86,25 +86,12 @@ def save_loss_curve(history, out_path: Path):
 
     epochs = [row["epoch"] for row in history]
     total = [row["loss"] for row in history]
-    recon = [row["recon"] for row in history]
-    kl = [row["kl"] for row in history]
-    has_val = any(row["val_loss"] is not None for row in history)
-    if has_val:
-        val_total = [row["val_loss"] for row in history]
-        val_recon = [row["val_recon"] for row in history]
-        val_kl = [row["val_kl"] for row in history]
 
     plt.figure(figsize=(8, 5))
-    plt.plot(epochs, total, label="train_total")
-    plt.plot(epochs, recon, label="train_recon")
-    plt.plot(epochs, kl, label="train_kl")
-    if has_val:
-        plt.plot(epochs, val_total, label="val_total")
-        plt.plot(epochs, val_recon, label="val_recon")
-        plt.plot(epochs, val_kl, label="val_kl")
+    plt.plot(epochs, total, label="train_loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.title("VAE Training Loss Curves")
+    plt.title("VAE Training Loss Curve")
     plt.legend()
     plt.grid(alpha=0.3)
     plt.tight_layout()

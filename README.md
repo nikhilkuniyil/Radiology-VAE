@@ -45,6 +45,14 @@ Training generates report-ready artifacts in `outputs/run1/report/`:
 - `loss_curves.png`
 - `final_metrics.json`
 
+To regenerate a training-loss plot from an existing run (without retraining):
+
+```bash
+python src/plot_metrics.py \
+  --metrics-csv outputs/run1/report/train_metrics.csv \
+  --out-path outputs/run1/report/loss_curves.png
+```
+
 If `--val-dir` is provided, training also computes validation metrics each epoch and selects
 `best.pt` using validation loss (`val_loss`) instead of training loss.
 If `--kl-warmup-epochs > 0`, beta is linearly warmed up from `--beta-start` to `--beta`.
