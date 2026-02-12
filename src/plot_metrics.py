@@ -30,13 +30,22 @@ def main():
 
     epochs = []
     losses = []
+    val_losses = []
+    has_val_loss = False
     with metrics_csv.open("r", newline="") as fp:
         reader = csv.DictReader(fp)
         if "epoch" not in reader.fieldnames or "loss" not in reader.fieldnames:
             raise ValueError("CSV must contain `epoch` and `loss` columns.")
+        has_val_loss = "val_loss" in reader.fieldnames
         for row in reader:
             epochs.append(int(row["epoch"]))
             losses.append(float(row["loss"]))
+            if has_val_loss:
+                val_value = row.get("val_loss", "")
+                if val_value is None or val_value == "":
+                    val_losses.append(None)
+                else:
+                    val_losses.append(float(val_value))
 
     if not epochs:
         raise ValueError("No rows found in metrics CSV.")
@@ -56,6 +65,10 @@ def main():
 
     plt.figure(figsize=(8, 5))
     plt.plot(epochs, losses, label="train_loss")
+    if has_val_loss and any(value is not None for value in val_losses):
+        filtered_epochs = [epoch for epoch, value in zip(epochs, val_losses) if value is not None]
+        filtered_vals = [value for value in val_losses if value is not None]
+        plt.plot(filtered_epochs, filtered_vals, label="val_loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.title(args.title)
