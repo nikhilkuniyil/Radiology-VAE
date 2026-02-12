@@ -1,0 +1,18 @@
+{
+  "data_dir": "public/chest_xray/chest_xray/train/NORMAL",
+  "val_dir": "public/chest_xray/chest_xray/val/NORMAL",
+  "out_dir": "outputs/run1",
+  "image_size": 128,
+  "batch_size": 32,
+  "epochs": 30,
+  "lr": 0.0003,
+  "beta": 0.0,
+  "beta_start": 0.0,
+  "kl_warmup_epochs": 0,
+  "latent_dim": 128,
+  "use_antixk_vae": true,
+  "num_workers": 4,
+  "seed": 42,
+  "save_every": 5,
+  "device": "cuda"
+}

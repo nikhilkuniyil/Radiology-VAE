@@ -1,0 +1,9 @@
+{
+  "best_metric": 0.003069441532716155,
+  "best_metric_name": "val_loss",
+  "final_epoch_loss": 0.002981893349120893,
+  "final_epoch_beta": 0.0,
+  "final_epoch_val_loss": 0.003194565186277032,
+  "final_epoch_val_recon_acc": 95.94644927978516,
+  "epochs": 30
+}
