@@ -50,7 +50,8 @@ To regenerate a training-loss plot from an existing run (without retraining):
 ```bash
 python src/plot_metrics.py \
   --metrics-csv outputs/run1/report/train_metrics.csv \
-  --out-path outputs/run1/report/loss_curves.png
+  --out-path outputs/run1/report/training_loss_only.png \
+  --loss-csv-out outputs/run1/report/loss_only.csv
 ```
 
 If `--val-dir` is provided, training also computes validation metrics each epoch and selects

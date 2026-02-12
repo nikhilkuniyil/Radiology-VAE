@@ -12,6 +12,12 @@ def get_args():
     parser = argparse.ArgumentParser(description="Plot training loss from train_metrics.csv without retraining.")
     parser.add_argument("--metrics-csv", type=str, required=True, help="Path to report/train_metrics.csv")
     parser.add_argument("--out-path", type=str, required=True, help="Path to save output PNG")
+    parser.add_argument(
+        "--loss-csv-out",
+        type=str,
+        default=None,
+        help="Optional path to save a CSV with only `epoch,loss` columns.",
+    )
     parser.add_argument("--title", type=str, default="VAE Training Loss Curve")
     return parser.parse_args()
 
@@ -34,6 +40,16 @@ def main():
 
     if not epochs:
         raise ValueError("No rows found in metrics CSV.")
+
+    if args.loss_csv_out is not None:
+        loss_csv_out = Path(args.loss_csv_out)
+        loss_csv_out.parent.mkdir(parents=True, exist_ok=True)
+        with loss_csv_out.open("w", newline="") as fp:
+            writer = csv.writer(fp)
+            writer.writerow(["epoch", "loss"])
+            for epoch, loss in zip(epochs, losses):
+                writer.writerow([epoch, loss])
+        print(f"Saved loss-only CSV to: {loss_csv_out}")
 
     out_path = Path(args.out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
