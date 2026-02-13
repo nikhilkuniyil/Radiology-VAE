@@ -21,11 +21,11 @@ pip install -r requirements.txt
 
 ## Train
 
-Your dataset should be a folder with images (nested subfolders are supported).
+Your dataset can be one or more folders with images (nested subfolders are supported).
 
 ```bash
 python src/train.py \
-  --data-dir /path/to/images \
+  --data-dir /path/to/train/folder_a /path/to/train/folder_b \
   --val-dir /path/to/val_images \
   --out-dir outputs/run1 \
   --epochs 30 \
@@ -58,6 +58,7 @@ If `--val-dir` is provided, training also computes validation metrics each epoch
 `best.pt` using validation loss (`val_loss`) instead of training loss.
 If `--kl-warmup-epochs > 0`, beta is linearly warmed up from `--beta-start` to `--beta`.
 Use `--use-antixk-vae` to switch from your scratch implementation to the existing AntixK-style model.
+Both `--data-dir` and `--val-dir` accept multiple paths; all images are merged into one dataset.
 
 ## Generate Samples
 
@@ -91,7 +92,7 @@ as described in: https://pytorch-ignite.ai/blog/gan-evaluation-with-fid-and-is/
 ```bash
 python src/evaluate.py \
   --checkpoint outputs/run1/best.pt \
-  --data-dir /path/to/images \
+  --data-dir /path/to/images_a /path/to/images_b \
   --out-dir outputs/run1/report \
   --num-samples 1000 \
   --batch-size 32 \

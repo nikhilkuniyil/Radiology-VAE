@@ -15,7 +15,7 @@ from models.factory import build_vae
 def get_args():
     parser = argparse.ArgumentParser(description="Evaluate VAE with FID and Inception Score using PyTorch-Ignite.")
     parser.add_argument("--checkpoint", type=str, required=True)
-    parser.add_argument("--data-dir", type=str, required=True)
+    parser.add_argument("--data-dir", type=str, nargs="+", required=True)
     parser.add_argument("--out-dir", type=str, required=True)
     parser.add_argument("--num-samples", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=32)

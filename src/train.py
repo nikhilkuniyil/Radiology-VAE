@@ -21,8 +21,8 @@ except ImportError:
 
 def get_args():
     parser = argparse.ArgumentParser(description="Train a convolutional VAE.")
-    parser.add_argument("--data-dir", type=str, required=True)
-    parser.add_argument("--val-dir", type=str, default=None)
+    parser.add_argument("--data-dir", type=str, nargs="+", required=True)
+    parser.add_argument("--val-dir", type=str, nargs="+", default=None)
     parser.add_argument("--out-dir", type=str, default="outputs/run")
     parser.add_argument("--image-size", type=int, default=128)
     parser.add_argument("--batch-size", type=int, default=32)
